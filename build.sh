@@ -25,7 +25,6 @@ fi
 
 cd "$CP_DIR"
 python3 tools/ci_fetch_deps.py espressif
-pip3 install --quiet -r requirements-dev.txt
 
 # Drop the board definitions into the CircuitPython tree.
 for d in "$HERE"/boards/*/; do
@@ -39,6 +38,10 @@ if [ ! -d "$HOME/.espressif" ] || ! ls "$HOME"/.espressif/tools/xtensa-esp-elf* 
 fi
 # shellcheck disable=SC1091
 source ./esp-idf/export.sh >/dev/null
+# CircuitPython's build scripts run inside the ESP-IDF Python environment.
+# cpp-coveralls is only used for coverage reports and fails to build on new Pythons.
+grep -v -E '^cpp-coveralls' ../../requirements-dev.txt > "$CP_DIR/.req-build.txt"
+python -m pip install --quiet -r "$CP_DIR/.req-build.txt"
 
 mkdir -p "$HERE/dist"
 for b in "${BOARDS[@]}"; do
