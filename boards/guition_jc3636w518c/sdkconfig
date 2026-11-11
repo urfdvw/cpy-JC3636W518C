@@ -1,0 +1,4 @@
+#
+# Configuration file for the Guition JC3636W518C
+#
+CONFIG_LWIP_LOCAL_HOSTNAME="jc3636w518c"
