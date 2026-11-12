@@ -61,8 +61,8 @@ Local build (Linux; downloads the ESP-IDF toolchain on first run):
 CP_VERSION=main ./build.sh       # build against another CircuitPython ref
 ```
 
-The script clones CircuitPython (default tag `10.3.2`, the first stable
-release with `qspibus`), copies `boards/*` into `ports/espressif/boards/`,
+The script clones CircuitPython (default tag `10.3.2`, a stable release
+that includes `qspibus`), copies `boards/*` into `ports/espressif/boards/`,
 and runs `make`.
 
 ## Layout
@@ -80,6 +80,7 @@ docs/hardware.md                hardware reference
 * The USB PID is Espressif's shared test PID `0x303A:0x8000`. Request a
   dedicated one at https://github.com/espressif/usb-pids before submitting
   this board upstream.
-* This firmware has not yet been tested on real hardware. Pins and init
+* Both variants compile cleanly against CircuitPython 10.3.2, but the
+  firmware has not yet been tested on real hardware. Pins and init
   tables come from the vendor package, as used by the projects listed in
   `docs/hardware.md`.
