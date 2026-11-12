@@ -31,6 +31,10 @@ Read the batch number on the board's label.
 | ≤ 2528 (made before July 2025) | `guition_jc3636w518c` |
 | > 2528 (July 2025 and later)   | `guition_jc3636w518c_v2` |
 
+No label? Flash either build, copy `examples/identify_board.py` to
+`code.py` and follow the prompts on the serial console. It tests whether the
+microphone is the newer PDM type.
+
 The two builds differ only in the panel init table and the microphone pins.
 If the screen stays dark or the colors look wrong, run `examples/panel_test.py`.
 It switches between all four known vendor init tables at runtime with the
@@ -76,7 +80,7 @@ boards/guition_jc3636w518c/     board.c (shared), pins.c (shared), common header
 boards/guition_jc3636w518c_v2/  V2 config; includes the shared sources
 lib/cst816.py                   touch driver
 lib/jc3636w518_panels.py        all known ST77916 init tables + runtime display re-init
-examples/                       display+touch demo, panel test, touch, SD, audio, mic, BLE keyboard host
+examples/                       display+touch demo, panel test, revision check, touch, SD, audio, mic, BLE keyboard host
 docs/hardware.md                hardware reference
 ```
 
