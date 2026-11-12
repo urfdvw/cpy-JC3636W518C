@@ -15,7 +15,8 @@ Full pinout, revision differences and sources: [docs/hardware.md](docs/hardware.
 * TF card through `sdioio` (4-bit).
 * Headphone output through `audiobusio.I2SOut`.
 * PDM microphone through `audiobusio.PDMIn` (V2 boards only).
-* Wi-Fi, BLE, USB CIRCUITPY drive, and every unused GPIO as `board.IOxx`.
+* Wi-Fi, BLE (`_bleio`; `examples/ble_keyboard_host.py` connects a BLE
+  keyboard), USB CIRCUITPY drive, and every unused GPIO as `board.IOxx`.
 
 The I2S microphone on older boards has no CircuitPython driver, because
 CircuitPython has no I2S input class yet.
@@ -71,7 +72,7 @@ and runs `make`.
 boards/guition_jc3636w518c/     board.c (shared), pins.c (shared), common header, V1 config
 boards/guition_jc3636w518c_v2/  V2 config; includes the shared sources
 lib/cst816.py                   touch driver
-examples/                       display+touch demo, touch, SD, audio, mic
+examples/                       display+touch demo, touch, SD, audio, mic, BLE keyboard host
 docs/hardware.md                hardware reference
 ```
 
