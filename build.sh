@@ -40,6 +40,10 @@ echo "Building against CircuitPython $CP_LABEL"
 
 # 2. Submodules needed by the espressif port (includes the matching ESP-IDF).
 python3 tools/ci_fetch_deps.py espressif
+# When an existing checkout switches version, ESP-IDF's own nested submodules
+# (mbedtls, lwip, Wi-Fi/BT libs, ...) stay at the old commits. Move the ones
+# that are already initialized to the commits this ESP-IDF expects.
+git -C ports/espressif/esp-idf submodule update --recursive --depth 1
 
 # 3. Drop the board definitions into the tree.
 for d in "$HERE"/boards/*/; do
@@ -68,7 +72,13 @@ python -m pip install --quiet -r "$CP_DIR/.req-build.txt"
 # 6. Build.
 mkdir -p "$HERE/dist"
 for b in "${BOARDS[@]}"; do
+    # A build directory configured by another CircuitPython version is not reusable.
+    stamp="build-$b/.cp-version"
+    if [ -d "build-$b" ] && [ "$(cat "$stamp" 2>/dev/null)" != "$(git rev-parse HEAD)" ]; then
+        rm -rf "build-$b"
+    fi
     make -j"$JOBS" BOARD="$b"
+    git rev-parse HEAD > "$stamp"
     cp "build-$b/firmware.bin" "$HERE/dist/$b-$CP_LABEL.bin"
     if [ -f "build-$b/firmware.uf2" ]; then
         cp "build-$b/firmware.uf2" "$HERE/dist/$b-$CP_LABEL.uf2"
