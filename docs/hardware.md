@@ -110,11 +110,12 @@ To use a different table permanently, call
   While asleep it does not acknowledge on I2C. `lib/cst816.py` writes
   register 0xFE = 1 to turn auto-sleep off, and treats I2C errors as
   "no touch".
-* **Flash size.** The vendor manual and every firmware project say 16 MB, and
-  this firmware is built for 16 MB. The schematic's flash symbol is labelled
-  BY25Q64 (8 MB), probably left over from an earlier design. If a board
-  fails to boot with a partition or flash-size error, it has the 8 MB part.
-  Rebuild with `CIRCUITPY_ESP_FLASH_SIZE = 8MB` in that case.
+* **Flash size.** The schematic's flash symbol is labelled BY25Q64 (8 MB),
+  but the manual says 16 MB, and a batch-2628 board reads JEDEC ID
+  `0x684018`: a Boya BY25Q128, 16 MB. The firmware is built for 16 MB. If
+  a board ever reports `0x684017` (8 MB) with `esptool flash_id`, rebuild with
+  `CIRCUITPY_ESP_FLASH_SIZE = 8MB`. Boya parts use ESP-IDF's generic QIO
+  enable, so QIO mode is fine.
 * **TF card.** The schematic shows all four data lines wired, with pull-ups on
   a resistor network. If 4-bit mode gives trouble with a card, use
   `data=[board.SD_D0]` (1-bit).
