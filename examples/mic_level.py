@@ -1,17 +1,30 @@
 # SPDX-License-Identifier: MIT
-# Microphone level meter for the V2 board (PDM microphone, batch > 2528).
-# The original board (batch <= 2528) has a standard I2S MEMS microphone on
-# MIC_SCK/MIC_WS/MIC_SD; CircuitPython has no I2S input class yet, so it is
-# not usable from Python on that variant.
+# Microphone level meter. Works on both hardware revisions:
+#   batch > 2528 (_v2 build):  PDM microphone   -> audiobusio.PDMIn
+#   batch <= 2528:             I2S MEMS mic     -> audioi2sin.I2SIn (CircuitPython 11+)
+# Prints a tuple per reading, so the Mu / Thonny plotter can graph it.
 import array
 import math
 import time
 
-import audiobusio
 import board
 
-mic = audiobusio.PDMIn(board.MIC_CLK, board.MIC_DATA, sample_rate=16000, bit_depth=16)
-buf = array.array("H", [0] * 320)
+N = 320  # 20 ms at 16 kHz
+
+if hasattr(board, "MIC_CLK"):
+    import audiobusio
+
+    mic = audiobusio.PDMIn(board.MIC_CLK, board.MIC_DATA, sample_rate=16000, bit_depth=16)
+    buf = array.array("H", [0] * N)  # PDMIn gives unsigned samples
+    print("PDM microphone")
+else:
+    import audioi2sin  # needs CircuitPython 11 or newer
+
+    # MSM261S4030H0R: 24-bit data in 32-bit slots, L/R pin low = left channel.
+    mic = audioi2sin.I2SIn(board.MIC_SCK, board.MIC_WS, board.MIC_SD,
+                           sample_rate=16000, bit_depth=32, output_bit_depth=16, mono=True)
+    buf = array.array("h", [0] * N)
+    print("I2S microphone")
 
 while True:
     mic.record(buf, len(buf))
