@@ -94,7 +94,7 @@ Four different vendor init tables for this panel are in circulation:
 | `BOE` | vendor file `ST77916_BOE 1.8'' 360x360 initial code_V1.7_20231208.txt` | none of the firmware here (the vendor's `Initialization code.txt` differs by one gamma byte) |
 
 All four are in `lib/jc3636w518_panels.py`. `examples/panel_test.py` cycles
-through them with the BOOT button, so you can see which one suits your glass.
+through them with a screen tap or the BOOT button, so you can see which one suits your glass.
 To use a different table permanently, call
 `jc3636w518_panels.init_display(...)` at the top of `code.py`.
 

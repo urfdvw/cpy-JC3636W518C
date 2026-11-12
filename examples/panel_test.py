@@ -2,7 +2,8 @@
 # Try each ST77916 init table and find the one that suits your panel glass.
 #
 # Shows color bars, a white ring at the panel edge and the table name.
-# Press BOOT to switch to the next table. The serial console prints the name.
+# Tap the screen or press BOOT to switch to the next table. The serial
+# console prints the name. Needs lib/cst816.py for tapping.
 # A good table gives clean red/green/blue/white bars, black corners and no
 # flicker or tint.
 #
@@ -24,6 +25,17 @@ except ImportError:
 
 button = digitalio.DigitalInOut(board.BUTTON)
 button.switch_to_input(pull=digitalio.Pull.UP)
+
+try:
+    from cst816 import CST816
+    touch = CST816(board.I2C(), reset_pin=board.TOUCH_RST)
+except Exception as e:  # no driver or touch controller not answering
+    print("Touch unavailable:", e)
+    touch = None
+
+
+def pressed():
+    return (not button.value) or (touch is not None and touch.touched)
 
 COLORS = (0xFF0000, 0x00FF00, 0x0000FF, 0xFFFFFF, 0x808080, 0x000000)
 
@@ -58,8 +70,8 @@ while True:
     print("Panel table:", name)
     display = panels.init_display(panels.PANELS[name])
     display.root_group = scene(name)
-    while button.value:  # wait for press
+    while not pressed():  # wait for BOOT or a tap
         time.sleep(0.02)
-    while not button.value:  # wait for release
+    while pressed():  # wait for release
         time.sleep(0.02)
     index = (index + 1) % len(names)

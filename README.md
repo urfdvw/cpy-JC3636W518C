@@ -37,8 +37,8 @@ microphone is the newer PDM type.
 
 The two builds differ only in the panel init table and the microphone pins.
 If the screen stays dark or the colors look wrong, run `examples/panel_test.py`.
-It switches between all four known vendor init tables at runtime with the
-BOOT button, without reflashing.
+It switches between all four known vendor init tables at runtime when you
+tap the screen or press BOOT, without reflashing.
 
 ## Flashing
 
