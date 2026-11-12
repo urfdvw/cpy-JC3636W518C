@@ -4,14 +4,15 @@
 
 | Feature | How | Tested on hardware |
 |---------|-----|--------------------|
-| Display (`board.DISPLAY`, REPL on screen) | built-in, `qspibus` + `busdisplay` | yes (V2 build, batch 2628) |
-| USB `CIRCUITPY` drive and serial REPL | built-in | yes (V2 build, batch 2628) |
+| Display (`board.DISPLAY`, REPL on screen) | built-in, `qspibus` + `busdisplay` | yes (V2 build on 10.3.2, batch 2628) |
+| USB `CIRCUITPY` drive and serial REPL | built-in | yes (V2 build on 10.3.2, batch 2628) |
+| Same on CircuitPython 11.0.0-alpha.2 | — | not yet |
 | Backlight dimming | `board.DISPLAY.brightness` | not yet |
 | Touch | `lib/cst816.py` | not yet |
 | TF card | `sdioio` | not yet |
 | Headphone / line out | `audiobusio.I2SOut` | not yet |
 | Microphone, batch > 2528 (PDM) | `audiobusio.PDMIn` | not yet |
-| Microphone, batch ≤ 2528 (I2S) | not possible: CircuitPython has no I2S input | — |
+| Microphone, batch ≤ 2528 (I2S) | `audioi2sin.I2SIn` (CircuitPython 11+) | not yet |
 | Wi-Fi, BLE | `wifi`, `_bleio` | not yet |
 | `guition_jc3636w518c` (original revision) build | — | not yet |
 
@@ -38,7 +39,7 @@ Copy one to `CIRCUITPY/code.py`.
 | `examples/touch_test.py` | prints touch coordinates and gestures |
 | `examples/sd_card.py` | mounts the TF card at `/sd` and lists it |
 | `examples/audio_tone.py` | 440 Hz tone on the headphone jack |
-| `examples/mic_level.py` | microphone level meter (PDM, batch > 2528) |
+| `examples/mic_level.py` | microphone level meter (PDM or I2S, picked by board) |
 | `examples/ble_keyboard_host.py` | connects a BLE keyboard and shows what you type |
 
 ## Display
@@ -107,8 +108,11 @@ See `examples/audio_tone.py`.
 
 * Batch > 2528 (`_v2` build): PDM microphone.
   `audiobusio.PDMIn(board.MIC_CLK, board.MIC_DATA, sample_rate=16000, bit_depth=16)`.
-* Batch ≤ 2528: I2S MEMS microphone (`MIC_SCK`, `MIC_WS`, `MIC_SD`). It can't
-  be used from Python yet, because CircuitPython has no I2S input class.
+* Batch ≤ 2528: I2S MEMS microphone (MSM261S4030H0R, left channel).
+  It needs CircuitPython 11 or newer:
+  `audioi2sin.I2SIn(board.MIC_SCK, board.MIC_WS, board.MIC_SD, sample_rate=16000, bit_depth=32, output_bit_depth=16)`.
+
+`examples/mic_level.py` picks the right one automatically.
 
 ## BLE
 

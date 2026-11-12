@@ -11,7 +11,7 @@ permissions:
   contents: write
 
 env:
-  CP_VERSION: "10.3.2"
+  CP_VERSION: "11.0.0-alpha.2"
 
 jobs:
   build:

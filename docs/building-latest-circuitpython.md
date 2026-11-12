@@ -1,8 +1,12 @@
 # Building against the latest CircuitPython
 
 The firmware is pinned to a CircuitPython release (`CP_VERSION`, currently
-`10.3.2`). This page covers moving it to a newer release, or to `main`, and
-what to check along the way.
+`11.0.0-alpha.2`). This page covers moving it to a newer release, or to
+`main`, and what to check along the way.
+
+History: 10.3.2 → 11.0.0-alpha.2 needed no change to the board code (the
+`qspibus` and `busdisplay` APIs are unchanged). 11.x adds `audioi2sin`, and
+moves to ESP-IDF 6.1.
 
 ## 1. Find the version
 
@@ -50,6 +54,8 @@ CP_VERSION=main ./build.sh            # development head
 ```
 
 `build.sh` re-uses `build/circuitpython` and checks out `CP_VERSION` in it.
+It brings ESP-IDF's nested submodules to the matching commits, and removes a
+board's build directory if it was configured by another version.
 It then fetches that version's submodules, including its ESP-IDF, and runs
 ESP-IDF's `install.sh` for any new toolchain versions. Output goes to
 `dist/<board>-<version>.bin`; a branch build gets the commit added to the
@@ -74,6 +80,8 @@ cores.
 | `ModuleNotFoundError: minify_html` or `jsmin` during `make` | build dependencies installed into the system Python, not ESP-IDF's | install `requirements-dev.txt` after `source esp-idf/export.sh`, as `build.sh` does |
 | `Failed building wheel for cpp-coveralls` | not needed for firmware builds | `build.sh` leaves it out |
 | `export.sh` complains about missing tools after changing version | new ESP-IDF needs new tool versions | rerun `./esp-idf/install.sh esp32s3` (`build.sh` does this every run) |
+| CMake: `Include directory .../mbedtls/tf-psa-crypto/extras is not a directory` | the re-used checkout changed version, but ESP-IDF's nested submodules stayed at the old commits | `git -C ports/espressif/esp-idf submodule update --recursive --depth 1` (`build.sh` does this) |
+| pip retries `dl.espressif.com/pypi` on every package | ESP-IDF 6.1 adds Espressif's PyPI mirror as an extra index; blocked here | harmless but slow; packages still come from pypi.org |
 | linker warning `LOAD segment with RWX permissions` | normal for ESP32 builds | ignore |
 
 ## 5. Check the result

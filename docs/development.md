@@ -13,8 +13,9 @@ CP_VERSION=main ./build.sh       # build against another CircuitPython ref
 
 `build.sh`:
 
-1. clones CircuitPython into `build/circuitpython` (default tag `10.3.2`, a
-   stable release that includes `qspibus`);
+1. clones CircuitPython into `build/circuitpython` (default tag
+   `11.0.0-alpha.2`; `qspibus` needs 10.2.0 or newer, and `audioi2sin`, used
+   by the I2S microphone, needs 11);
 2. fetches the espressif port's submodules;
 3. copies `boards/*` into `ports/espressif/boards/`;
 4. runs ESP-IDF's `install.sh`, and installs CircuitPython's Python build

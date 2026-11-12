@@ -58,8 +58,19 @@ kept in the repo). Recreate them if needed:
   with just `#include "supervisor/board.h"`. Use it to tell a display hang
   apart from other boot problems.
 
+## Upgrade to CircuitPython 11.0.0-alpha.2
+
+* The board code needed no changes: the `qspibus`, `busdisplay` and display
+  allocation APIs are identical to 10.3.2.
+* 11.x adds `audioi2sin`, which makes the I2S microphone on batch ≤ 2528
+  boards usable. `examples/mic_level.py` handles both microphones.
+* 11.x moves to ESP-IDF 6.1. Re-using the 10.3.2 checkout left ESP-IDF's
+  nested submodules (mbedtls, lwip, Wi-Fi libs) at old commits, and CMake
+  failed. `build.sh` now syncs them, and starts fresh build directories after
+  a version change.
+
 ## Not yet tested on hardware
 
-Touch, TF card, audio out, PDM microphone, Wi-Fi, BLE (including
+The 11.0.0-alpha.2 builds, touch, TF card, audio out, both microphones, Wi-Fi, BLE (including
 `examples/ble_keyboard_host.py`), backlight dimming, the `identify_board.py`
 heuristic, the original-revision build, and the other panel tables.

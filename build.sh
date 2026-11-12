@@ -14,7 +14,7 @@
 # See docs/building-latest-circuitpython.md.
 set -euo pipefail
 
-CP_VERSION="${CP_VERSION:-10.3.2}"
+CP_VERSION="${CP_VERSION:-11.0.0-alpha.2}"
 HERE="$(cd "$(dirname "$0")" && pwd)"
 CP_DIR="${CP_DIR:-$HERE/build/circuitpython}"
 JOBS="${JOBS:-$(nproc)}"
