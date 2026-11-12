@@ -1,0 +1,30 @@
+
+
+def init_display(init_sequence, *, rotation=0, brightness=1.0, frequency=40_000_000):
+    """Release the built-in display and start the panel with init_sequence.
+
+    Returns the new busdisplay.BusDisplay; board.DISPLAY keeps pointing
+    at the released one, so use the returned object instead.
+    """
+    displayio.release_displays()
+    bus = qspibus.QSPIBus(
+        clock=board.LCD_CLK,
+        data0=board.LCD_D0,
+        data1=board.LCD_D1,
+        data2=board.LCD_D2,
+        data3=board.LCD_D3,
+        cs=board.LCD_CS,
+        reset=board.LCD_RESET,
+        frequency=frequency,
+    )
+    return busdisplay.BusDisplay(
+        bus,
+        init_sequence,
+        width=360,
+        height=360,
+        rotation=rotation,
+        color_depth=16,
+        pixels_in_byte_share_row=False,
+        backlight_pin=board.LCD_BACKLIGHT,
+        brightness=brightness,
+    )

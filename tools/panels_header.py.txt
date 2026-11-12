@@ -1,0 +1,22 @@
+# SPDX-License-Identifier: MIT
+"""
+ST77916 panel init tables for the Guition JC3636W518C, plus a helper that
+rebuilds board.DISPLAY with any of them at runtime.
+
+Four different vendor tables are in circulation for this 1.8" 360x360 panel.
+The firmware has one built in (V1 or V2 depending on the build). If the
+screen is blank, washed out or has wrong colors, try the others:
+
+    import jc3636w518_panels as panels
+    display = panels.init_display(panels.BOE)
+
+Generated from the vendor package, xiaozhi-esp32 and ESP32_Display_Panel
+v0.1.4. Every table is followed by COLMOD 16-bit, MADCTL 0x00, INVON,
+SLPOUT and DISPON.
+"""
+
+import board
+import busdisplay
+import displayio
+import qspibus
+

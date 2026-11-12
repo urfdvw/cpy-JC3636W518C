@@ -1,102 +1,75 @@
 # CircuitPython for the Guition JC3636W518C
 
-Unofficial CircuitPython board definition for the Guition **JC3636W518C**
-("Taiji Pi S3"). The board has an ESP32-S3R8, 16 MB flash and 8 MB PSRAM, a
-round 360×360 ST77916 QSPI display, CST816S touch, a microSD slot, a
-PCM5100A headphone DAC and a microphone.
+Unofficial CircuitPython firmware for the Guition **JC3636W518C** ("Taiji Pi
+S3"), a 1.8" round 360×360 touch display built around an ESP32-S3R8 (16 MB
+flash, 8 MB PSRAM). The board also has a microSD slot, a PCM5100A headphone
+DAC and a microphone.
 
-Full pinout, revision differences and sources: [docs/hardware.md](docs/hardware.md).
+With this firmware the display starts at boot as `board.DISPLAY`, every
+on-board part has a `board` pin name, and the board appears as a `CIRCUITPY`
+USB drive. Documentation is in [`docs/`](docs/README.md).
 
-## What works
+## Download
 
-* `board.DISPLAY`: the ST77916 starts at boot through `qspibus`, and the REPL
-  appears on screen. `display.brightness` dims the PWM backlight.
-* Touch through `lib/cst816.py` (coordinates, gestures).
-* TF card through `sdioio` (4-bit).
-* Headphone output through `audiobusio.I2SOut`.
-* PDM microphone through `audiobusio.PDMIn` (V2 boards only).
-* The two free GPIOs, 38 and 39, on the small CN2 header (`board.IO38`, `board.IO39`).
-* Wi-Fi, BLE (`_bleio`; `examples/ble_keyboard_host.py` connects a BLE
-  keyboard), USB CIRCUITPY drive, and every unused GPIO as `board.IOxx`.
+Firmware files are named `<board>-<CircuitPython version>.bin`.
 
-The I2S microphone on older boards has no CircuitPython driver, because
-CircuitPython has no I2S input class yet.
+* **Releases:** the repository's Releases page, for tagged versions.
+* **Latest build:** open the Actions tab, pick the most recent green
+  "Build firmware" run, and download the board's zip from **Artifacts**.
 
-## Which firmware?
+### Which file?
 
-Read the batch number on the board's label.
+Check the batch number printed on the PCB, next to the TF card slot
+(e.g. `2628`), or on the label.
 
-| Label batch | Firmware |
-|-------------|----------|
-| ≤ 2528 (made before July 2025) | `guition_jc3636w518c` |
-| > 2528 (July 2025 and later)   | `guition_jc3636w518c_v2` |
+| Batch | Firmware |
+|-------|----------|
+| 2528 or lower (before July 2025) | `guition_jc3636w518c` |
+| above 2528 (July 2025 and later) | `guition_jc3636w518c_v2` |
 
-No label? Flash either build, copy `examples/identify_board.py` to
-`code.py` and follow the prompts on the serial console. It tests whether the
-microphone is the newer PDM type.
-
-The two builds differ only in the panel init table and the microphone pins.
-If the screen stays dark or the colors look wrong, run `examples/panel_test.py`.
-It switches between all four known vendor init tables at runtime when you
-tap the screen or press BOOT, without reflashing.
+If you cannot find a batch number, see
+[Identifying the revision](docs/usage.md#identifying-the-revision).
 
 ## Flashing
 
-Hold **BOOT**, plug in USB-C, then release. Then run:
+Flashing erases the factory firmware. To keep a copy, back it up first with
+the command-line method below (`read_flash`).
+
+### In the browser: esptool-js
+
+Needs Chrome or Edge (WebSerial).
+
+1. Open https://espressif.github.io/esptool-js/
+2. Connect the board over USB-C and click **Connect**. Pick the port
+   (`USB JTAG/serial debug unit`, ID `303a:1001`). If no port appears,
+   unplug the board, hold **BOOT** while plugging it back in, then release.
+   BOOT is the small side-push button on the PCB edge next to the 3.5 mm
+   jack.
+3. Click **Erase Flash** and wait for it to finish.
+4. Under *Program*, set **Flash Address to `0x0`**. The page defaults to
+   `0x1000`, which is wrong for the ESP32-S3: with it, the board boots to
+   nothing, and neither a drive nor a serial port appears.
+5. Choose the `.bin` file and click **Program**.
+6. When it finishes, unplug and replug USB without holding BOOT. The board
+   has no reset button.
+
+The screen shows the CircuitPython console, and a `CIRCUITPY` drive appears.
+
+### Command line: esptool
 
 ```sh
 pip install esptool
-esptool.py --chip esp32s3 --port /dev/ttyACM0 erase_flash
-esptool.py --chip esp32s3 --port /dev/ttyACM0 write_flash -z 0x0 guition_jc3636w518c-10.3.2.bin
+# optional: back up the factory firmware (16 MB)
+esptool.py --chip esp32s3 --port PORT read_flash 0 0x1000000 factory-backup.bin
+esptool.py --chip esp32s3 --port PORT erase_flash
+esptool.py --chip esp32s3 --port PORT write_flash -z 0x0 guition_jc3636w518c_v2-10.3.2.bin
 ```
 
-Browser alternative: https://espressif.github.io/esptool-js/ (Chrome/Edge).
-**Change Flash Address from its default `0x1000` to `0x0`.** With `0x1000`
-the ESP32-S3 finds no bootloader, and neither a drive nor a serial port
-appears.
+`PORT` is e.g. `COM3` on Windows, `/dev/cu.usbmodem…` on macOS, or
+`/dev/ttyACM0` on Linux. Unplug and replug when done.
 
-There is no reset button: unplug and replug USB (without holding BOOT).
-A `CIRCUITPY` drive appears. Copy `lib/cst816.py` to
-`CIRCUITPY/lib/` and an example from `examples/` to `CIRCUITPY/code.py`.
-The demo uses `adafruit_display_text` when it is installed:
-`circup install adafruit_display_text`.
+## Next steps
 
-## Building
-
-GitHub Actions (`.github/workflows/build.yml`) builds both variants on every
-push and uploads the `.bin` files as artifacts. Pushing a `v*` tag also
-publishes them as a release.
-
-Local build (Linux; downloads the ESP-IDF toolchain on first run):
-
-```sh
-./build.sh                       # both variants -> dist/
-./build.sh guition_jc3636w518c   # one variant
-CP_VERSION=main ./build.sh       # build against another CircuitPython ref
-```
-
-The script clones CircuitPython (default tag `10.3.2`, a stable release
-that includes `qspibus`), copies `boards/*` into `ports/espressif/boards/`,
-and runs `make`.
-
-## Layout
-
-```
-boards/guition_jc3636w518c/     board.c (shared), pins.c (shared), common header, V1 config
-boards/guition_jc3636w518c_v2/  V2 config; includes the shared sources
-lib/cst816.py                   touch driver
-lib/jc3636w518_panels.py        all known ST77916 init tables + runtime display re-init
-examples/                       display+touch demo, panel test, revision check, touch, SD, audio, mic, BLE keyboard host
-docs/hardware.md                hardware reference
-```
-
-## Notes
-
-* The USB PID is Espressif's shared test PID `0x303A:0x8000`. Request a
-  dedicated one at https://github.com/espressif/usb-pids before submitting
-  this board upstream.
-* Tested so far: `guition_jc3636w518c_v2` boots and shows the REPL on a
-  batch-2628 board (panel `H0185Y040X V0`, flash Boya BY25Q128). The
-  original-revision build has not been tested on hardware yet. The pins have been
-  checked against the vendor schematic. The panel init tables come from
-  vendor-derived code (xiaozhi-esp32).
+* [docs/usage.md](docs/usage.md): libraries, examples, display, touch, audio, BLE
+* [docs/hardware.md](docs/hardware.md): pin map, revisions, schematic notes
+* [docs/development.md](docs/development.md): building the firmware yourself
