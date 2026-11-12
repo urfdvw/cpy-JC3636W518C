@@ -16,7 +16,7 @@ static const mp_rom_map_elem_t board_module_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR_BUTTON),     MP_ROM_PTR(&pin_GPIO0) },
     { MP_ROM_QSTR(MP_QSTR_BOOT),       MP_ROM_PTR(&pin_GPIO0) },
 
-    // UART
+    // UART0 (chip pins only, not routed to a connector)
     { MP_ROM_QSTR(MP_QSTR_TX),         MP_ROM_PTR(&pin_GPIO43) },
     { MP_ROM_QSTR(MP_QSTR_RX),         MP_ROM_PTR(&pin_GPIO44) },
 
@@ -66,6 +66,10 @@ static const mp_rom_map_elem_t board_module_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR_MIC_WS),     MP_ROM_PTR(&pin_GPIO45) },
     { MP_ROM_QSTR(MP_QSTR_MIC_SD),     MP_ROM_PTR(&pin_GPIO46) },
     #endif
+
+    // Header CN2 (2x2, 1.27 mm): 1=5V, 2=GPIO39, 3=GND, 4=GPIO38
+    { MP_ROM_QSTR(MP_QSTR_HEADER_IO38), MP_ROM_PTR(&pin_GPIO38) },
+    { MP_ROM_QSTR(MP_QSTR_HEADER_IO39), MP_ROM_PTR(&pin_GPIO39) },
 
     // Raw GPIO names (Espressif convention)
     { MP_ROM_QSTR(MP_QSTR_IO0),     MP_ROM_PTR(&pin_GPIO0) },

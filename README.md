@@ -15,6 +15,7 @@ Full pinout, revision differences and sources: [docs/hardware.md](docs/hardware.
 * TF card through `sdioio` (4-bit).
 * Headphone output through `audiobusio.I2SOut`.
 * PDM microphone through `audiobusio.PDMIn` (V2 boards only).
+* The two free GPIOs, 38 and 39, on the small CN2 header (`board.IO38`, `board.IO39`).
 * Wi-Fi, BLE (`_bleio`; `examples/ble_keyboard_host.py` connects a BLE
   keyboard), USB CIRCUITPY drive, and every unused GPIO as `board.IOxx`.
 
@@ -82,6 +83,6 @@ docs/hardware.md                hardware reference
   dedicated one at https://github.com/espressif/usb-pids before submitting
   this board upstream.
 * Both variants compile cleanly against CircuitPython 10.3.2, but the
-  firmware has not yet been tested on real hardware. Pins and init
-  tables come from the vendor package, as used by the projects listed in
-  `docs/hardware.md`.
+  firmware has not yet been tested on real hardware. The pins have been
+  checked against the vendor schematic. The panel init tables come from
+  vendor-derived code (xiaozhi-esp32).

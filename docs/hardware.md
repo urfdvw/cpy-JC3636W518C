@@ -4,10 +4,10 @@ Also sold as "Taiji Pi S3" (太极小派). The trailing **C** marks the capaciti
 version; JC3636W518**N** is the same board without touch.
 
 No official English datasheet is published. The vendor ships a download package
-(schematics, `pincfg.h`, Arduino/ESP-IDF demos) to buyers. The tables below are
-put together from public projects that use that package, listed under
-[Sources](#sources). Each pin was checked in at least two of them, except
-where a note says otherwise.
+to buyers (schematics, a Chinese user manual, datasheets, flashing tools).
+Everything below has been checked against the vendor schematic (sheets
+`1_P1`, `2_S3R8`, `3_DAC`, `4_LCD`, `5_QI`) and the vendor manual, and
+agrees with the public projects listed under [Sources](#sources).
 
 ## Summary
 
@@ -15,16 +15,18 @@ where a note says otherwise.
 |--------------|----------------------------------------|-------|
 | SoC          | ESP32-S3R8 (dual-core LX7, 240 MHz)    | Wi-Fi 2.4 GHz + BLE 5 |
 | PSRAM        | 8 MB octal (in package)                | uses GPIO33–37 internally |
-| Flash        | 16 MB quad SPI                          | |
+| Flash        | 16 MB quad SPI                          | see note on flash size below |
 | Display      | 1.8" (some listings: 1.85") round IPS, 360×360, ST77916 | 4-wire QSPI, RGB565, colors inverted |
 | Backlight    | GPIO15                                 | active high, PWM-dimmable |
 | Touch        | CST816S (or CST816T/D) at I2C 0x15     | single point + gestures |
-| Audio out    | PCM5100A I2S DAC                       | 3.5 mm headphone jack only, no speaker amplifier |
-| Microphone   | batch ≤ 2528: I2S MEMS; batch > 2528: PDM | see revisions |
+| Audio out    | PCM5100A I2S DAC                       | 3.5 mm jack (PJ-342C) + line-out header CN4, no speaker amplifier |
+| Microphone   | batch ≤ 2528: MSM261S4030H0R I2S MEMS (L/R tied low = left slot); batch > 2528: PDM | see revisions |
 | Storage      | microSD (TF) on SDMMC                  | |
-| Charging     | Qi wireless receiver                   | not connected to any GPIO |
+| Power        | 5 V from USB-C or Qi wireless receiver | Qi has no GPIO; no battery or battery sense |
 | USB          | ESP32-S3 native USB (GPIO19/20)        | USB-C |
-| Button       | BOOT on GPIO0                          | active low |
+| Button       | BOOT on GPIO0                          | active low, external pull-up |
+| Header CN2   | 2×2, 1.27 mm pitch                     | 1: 5V, 2: GPIO39, 3: GND, 4: GPIO38 |
+| Header CN4   | 2×2, 1.27 mm pitch                     | 1: LINE_OUT_R, 2: LINE_OUT_L, 3/4: GND |
 
 ## Pin map
 
@@ -54,14 +56,17 @@ where a note says otherwise.
 | 40 | Touch RST | `TOUCH_RST` |
 | 41 | Touch INT | `TOUCH_INT` |
 | 42 | Mic I2S SCK (batch ≤ 2528 only) | `MIC_SCK` |
-| 43/44 | UART TX/RX | `TX`, `RX` |
+| 38 | Header CN2 pin 4 | `IO38`, `HEADER_IO38` |
+| 39 | Header CN2 pin 2 | `IO39`, `HEADER_IO39` |
+| 43/44 | UART0 TX/RX (chip pins only, not on a connector) | `TX`, `RX` |
 | 45 | Mic WS (≤ 2528) / PDM CLK (> 2528) | `MIC_WS` / `MIC_CLK` |
 | 46 | Mic SD (≤ 2528) / PDM DATA (> 2528) | `MIC_SD` / `MIC_DATA` |
 | 47 | LCD RST | `LCD_RESET` |
 | 48 | DAC XSMT (mute): HIGH = sound on | `AUDIO_MUTE` |
 
-GPIO38 and GPIO39 are not used by any on-board part (also exposed as `IO38`/`IO39`).
-No public source shows whether they reach a connector.
+GPIO38 and GPIO39 are the only free GPIOs; they go to the small CN2 header
+together with 5 V and GND. The panel's TE (tearing) line is not connected to
+the ESP32-S3.
 
 ## Hardware revisions
 
@@ -89,16 +94,27 @@ If the screen stays black or looks wrong with one build, flash the other.
   While asleep it does not acknowledge on I2C. `lib/cst816.py` writes
   register 0xFE = 1 to turn auto-sleep off, and treats I2C errors as
   "no touch".
-* **TF card.** The vendor `pincfg.h` and schematic show a 4-bit bus. One
-  ESPHome config uses it in 1-bit mode (D0/CLK/CMD only). If 4-bit fails, use
-  `data=[board.SD_D0]`.
-* **Audio.** The PCM5100A has no control interface. XSMT (GPIO48) must be
-  HIGH, as the vendor firmware sets it. CircuitPython 10.x has no I2S
+* **Flash size.** The vendor manual and every firmware project say 16 MB, and
+  this firmware is built for 16 MB. The schematic's flash symbol is labelled
+  BY25Q64 (8 MB), probably left over from an earlier design. If a board
+  fails to boot with a partition or flash-size error, it has the 8 MB part.
+  Rebuild with `CIRCUITPY_ESP_FLASH_SIZE = 8MB` in that case.
+* **TF card.** The schematic shows all four data lines wired, with pull-ups on
+  a resistor network. If 4-bit mode gives trouble with a card, use
+  `data=[board.SD_D0]` (1-bit).
+* **Backlight.** GPIO15 drives the gate of a low-side N-MOSFET (AO8400A), so
+  the backlight is active high and can be PWM-dimmed.
+* **Audio.** The PCM5100A is hardware-configured (FMT low = I2S, no control
+  bus). XSMT (GPIO48) is the soft-mute input: HIGH plays, LOW mutes. The
+  output feeds both the 3.5 mm jack and the CN4 header. CircuitPython 10.x has no I2S
   *input* class, so the I2S microphone on batch ≤ 2528 boards cannot be used
   from Python. The PDM microphone on batch > 2528 boards works with
   `audiobusio.PDMIn`.
 
 ## Sources
+
+* Vendor download package: schematic sheets `1_P1`, `2_S3R8`, `3_DAC`, `4_LCD`, `5_QI`;
+  `JC3636W518使用说明-CN.pdf` (manual: ESP32-S3R8, 8 MB PSRAM, 16 MB flash, ST77916, CST816).
 
 * xiaozhi-esp32, board `taiji-pi-s3` (pins, both panel init tables, revision notes):
   https://github.com/78/xiaozhi-esp32/tree/main/main/boards/taiji-pi-s3
