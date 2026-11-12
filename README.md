@@ -50,7 +50,13 @@ esptool.py --chip esp32s3 --port /dev/ttyACM0 erase_flash
 esptool.py --chip esp32s3 --port /dev/ttyACM0 write_flash -z 0x0 guition_jc3636w518c-10.3.2.bin
 ```
 
-Press reset. A `CIRCUITPY` drive appears. Copy `lib/cst816.py` to
+Browser alternative: https://espressif.github.io/esptool-js/ (Chrome/Edge).
+**Change Flash Address from its default `0x1000` to `0x0`.** With `0x1000`
+the ESP32-S3 finds no bootloader, and neither a drive nor a serial port
+appears.
+
+There is no reset button: unplug and replug USB (without holding BOOT).
+A `CIRCUITPY` drive appears. Copy `lib/cst816.py` to
 `CIRCUITPY/lib/` and an example from `examples/` to `CIRCUITPY/code.py`.
 The demo uses `adafruit_display_text` when it is installed:
 `circup install adafruit_display_text`.
@@ -89,7 +95,8 @@ docs/hardware.md                hardware reference
 * The USB PID is Espressif's shared test PID `0x303A:0x8000`. Request a
   dedicated one at https://github.com/espressif/usb-pids before submitting
   this board upstream.
-* Both variants compile cleanly against CircuitPython 10.3.2, but the
-  firmware has not yet been tested on real hardware. The pins have been
+* Tested so far: `guition_jc3636w518c_v2` boots and shows the REPL on a
+  batch-2628 board (panel `H0185Y040X V0`, flash Boya BY25Q128). The
+  original-revision build has not been tested on hardware yet. The pins have been
   checked against the vendor schematic. The panel init tables come from
   vendor-derived code (xiaozhi-esp32).

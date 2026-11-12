@@ -89,7 +89,7 @@ Four different vendor init tables for this panel are in circulation:
 | Name | Origin | Used by |
 |------|--------|---------|
 | `V1` | vendor demo `scr_st77916.h` (= xiaozhi V1) | `guition_jc3636w518c` firmware |
-| `V2` | xiaozhi-esp32 `taiji-pi-s3`, batch > 2528 | `guition_jc3636w518c_v2` firmware |
+| `V2` | xiaozhi-esp32 `taiji-pi-s3`, batch > 2528 | `guition_jc3636w518c_v2` firmware; confirmed working on a batch-2628 board (panel `H0185Y040X V0`) |
 | `ESP_DEFAULT` | Espressif `esp_lcd_st77916` default (ESP32_Display_Panel v0.1.4) | what the vendor Arduino demo really runs: its own `configVendorCommands()` call is commented out |
 | `BOE` | vendor file `ST77916_BOE 1.8'' 360x360 initial code_V1.7_20231208.txt` | none of the firmware here (the vendor's `Initialization code.txt` differs by one gamma byte) |
 
