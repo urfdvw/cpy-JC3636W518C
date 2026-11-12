@@ -82,6 +82,22 @@ discontinued, and the panel glass, which needs a different ST77916 init table.
 
 If the screen stays black or looks wrong with one build, flash the other.
 
+### ST77916 init tables
+
+Four different vendor init tables for this panel are in circulation:
+
+| Name | Origin | Used by |
+|------|--------|---------|
+| `V1` | vendor demo `scr_st77916.h` (= xiaozhi V1) | `guition_jc3636w518c` firmware |
+| `V2` | xiaozhi-esp32 `taiji-pi-s3`, batch > 2528 | `guition_jc3636w518c_v2` firmware |
+| `ESP_DEFAULT` | Espressif `esp_lcd_st77916` default (ESP32_Display_Panel v0.1.4) | what the vendor Arduino demo really runs: its own `configVendorCommands()` call is commented out |
+| `BOE` | vendor file `ST77916_BOE 1.8'' 360x360 initial code_V1.7_20231208.txt` | none of the firmware here (the vendor's `Initialization code.txt` differs by one gamma byte) |
+
+All four are in `lib/jc3636w518_panels.py`. `examples/panel_test.py` cycles
+through them with the BOOT button, so you can see which one suits your glass.
+To use a different table permanently, call
+`jc3636w518_panels.init_display(...)` at the top of `code.py`.
+
 ## Details and caveats
 
 * **Display.** The ST77916 is driven by CircuitPython's `qspibus` with
@@ -113,6 +129,7 @@ If the screen stays black or looks wrong with one build, flash the other.
 
 ## Sources
 
+* Vendor demo `ST77916_LVGL_DEMO` (`pincfg.h`, `scr_st77916.h`) and bundled ESP32_Display_Panel v0.1.4 (identical to upstream).
 * Vendor download package: schematic sheets `1_P1`, `2_S3R8`, `3_DAC`, `4_LCD`, `5_QI`;
   `JC3636W518使用说明-CN.pdf` (manual: ESP32-S3R8, 8 MB PSRAM, 16 MB flash, ST77916, CST816).
 
