@@ -46,6 +46,7 @@ UUID_BOOT_KBD_INPUT = _bleio.UUID(0x2A22)
 UUID_REPORT_REFERENCE = _bleio.UUID(0x2908)
 
 APPEARANCE_KEYBOARD = 0x03C1
+TARGET_NAME_PREFIX = "Power Keyboard"  # only connect to keyboards named like this
 REPORT_TYPE_INPUT = 1
 
 # ---------------------------------------------------------------------------
@@ -162,14 +163,28 @@ def find_keyboard(known_address=None):
     """Scan until a connectable BLE keyboard (or the bonded one) shows up."""
     adapter = _bleio.adapter
     while True:
-        for entry in adapter.start_scan(timeout=5, active=True, minimum_rssi=-90):
-            if not entry.connectable:
-                continue
-            is_kbd, name = adv_info(entry)
-            if is_kbd or (known_address is not None and entry.address == known_address):
+        # On the ESP32 port the scan iterator ends as soon as its buffer is
+        # empty (~0.25 s), not after `timeout`. Restarting the scan in a tight
+        # loop eventually makes NimBLE fail ("system firmware error: 21"), so
+        # throttle restarts and recover from scan errors instead of crashing.
+        try:
+            for entry in adapter.start_scan(timeout=5, active=True, minimum_rssi=-90):
+                # The name often arrives in the scan response, so don't
+                # filter on entry.connectable here.
+                _, name = adv_info(entry)
+                if (name and name.startswith(TARGET_NAME_PREFIX)) or (
+                    known_address is not None and entry.address == known_address
+                ):
+                    return entry.address, name or str(entry.address)
+        except _bleio.BluetoothError as e:
+            print("[scan] error, retrying:", e)
+            time.sleep(1)
+        finally:
+            try:
                 adapter.stop_scan()
-                return entry.address, name or str(entry.address)
-        adapter.stop_scan()
+            except Exception:
+                pass
+        time.sleep(0.3)
 
 
 # ---------------------------------------------------------------------------
@@ -259,6 +274,9 @@ while True:
     conn = None
     try:
         conn = _bleio.adapter.connect(address, timeout=10)
+        # On 10.3.x connect() can return after the timeout without a link.
+        if conn is None or not conn.connected:
+            raise RuntimeError("connect timed out")
         show_status("Pairing: " + name)
         conn.pair(bond=True)
         buffers = subscribe(conn)
