@@ -75,54 +75,116 @@ MOD_SHIFT = 0x02 | 0x20  # left / right shift bits
 # ---------------------------------------------------------------------------
 display = board.DISPLAY
 display.brightness = 0.8
-CX = display.width // 2
-CY = display.height // 2
-MAX_COLS = 20       # characters per line inside the round screen
-MAX_LINES = 8
+# Our own on-screen terminal. Only text written through out() shows here, so the
+# firmware's BLE debug prints (CIRCUITPY_VERBOSE_BLE) stay on the serial console.
+_font = terminalio.FONT
+_fw, _fh = _font.get_bounding_box()[:2]
+TERM_SCALE = 2
+_side = int(display.width * 0.72)          # square that fits inside the round screen
+TERM_COLS = _side // (_fw * TERM_SCALE)
+TERM_ROWS = _side // (_fh * TERM_SCALE)
+_pal = displayio.Palette(2)
+_pal[0] = 0x000000
+_pal[1] = 0xFFFFFF
+_grid = displayio.TileGrid(_font.bitmap, pixel_shader=_pal, width=TERM_COLS,
+                           height=TERM_ROWS, tile_width=_fw, tile_height=_fh,
+                           default_tile=_font.get_glyph(32).tile_index)
+term = terminalio.Terminal(_grid, _font)
+_screen = displayio.Group(scale=TERM_SCALE,
+                          x=(display.width - TERM_COLS * _fw * TERM_SCALE) // 2,
+                          y=(display.height - TERM_ROWS * _fh * TERM_SCALE) // 2)
+_screen.append(_grid)
+display.root_group = _screen
+status = typed = None
 
-if label:
-    root = displayio.Group()
-    status = label.Label(terminalio.FONT, text="", color=0x00C0FF,
-                         anchor_point=(0.5, 0.5), anchored_position=(CX, 50))
-    typed = label.Label(terminalio.FONT, text="", color=0xFFFFFF, scale=2,
-                        line_spacing=1.0, anchor_point=(0.5, 0.5),
-                        anchored_position=(CX, CY + 10))
-    root.append(status)
-    root.append(typed)
-    display.root_group = root
-else:
-    status = typed = None
 
-text_buffer = ""
+def out(s):
+    """Write text to the on-screen terminal and the serial console."""
+    if not s:
+        return
+    term.write(s.replace("\r\n", "\n").replace("\n", "\r\n").encode())
+    print(s, end="")
 
+
+class _Out:
+    def write(self, s):
+        out(s if isinstance(s, str) else str(s, "utf-8"))
+        return len(s)
+
+
+OUT = _Out()
+
+
+def kprint(*args, sep=" ", end="\n"):
+    out(sep.join(str(x) for x in args) + end)
 
 def show_status(msg):
-    print("[status]", msg)
-    if status:
-        status.text = msg
+    out("[status] " + msg + "\n")
 
 
-def wrap(text):
-    lines = []
-    for para in text.split("\n"):
-        while len(para) > MAX_COLS:
-            lines.append(para[:MAX_COLS])
-            para = para[MAX_COLS:]
-        lines.append(para)
-    return "\n".join(lines[-MAX_LINES:])
+# ---------------------------------------------------------------------------
+# Keyboard REPL (an emulated >>> prompt; the real REPL cannot take BLE input)
+# ---------------------------------------------------------------------------
+import traceback
+
+repl_ns = {"__name__": "__kbd__", "print": kprint}
+repl_line = ""      # line being typed
+repl_block = []     # lines of an unfinished multi-line block
+
+
+def repl_prompt():
+    out("... " if repl_block else ">>> ")
+
+
+def repl_run(src):
+    try:
+        try:
+            code = compile(src, "<kbd>", "eval")
+        except SyntaxError:
+            exec(compile(src, "<kbd>", "exec"), repl_ns)
+        else:
+            result = eval(code, repl_ns)
+            if result is not None:
+                out(repr(result) + "\n")
+                repl_ns["_"] = result
+    except Exception as e:  # show errors like the real REPL, keep running
+        traceback.print_exception(e, file=OUT)
+
+
+def repl_enter():
+    global repl_line
+    line = repl_line
+    repl_line = ""
+    out("\n")
+    if repl_block:
+        if line.strip():
+            repl_block.append(line)
+        else:               # blank line ends the block
+            src = "\n".join(repl_block)
+            repl_block.clear()
+            repl_run(src)
+    elif line.rstrip().endswith(":"):
+        repl_block.append(line)
+    elif line.strip():
+        repl_run(line)
+    repl_prompt()
 
 
 def type_char(ch):
-    global text_buffer
-    if ch == "\b":
-        text_buffer = text_buffer[:-1]
-        print("\b \b", end="")
+    global repl_line
+    if ch == "\n":
+        repl_enter()
+    elif ch == "\b":
+        if repl_line:
+            repl_line = repl_line[:-1]
+            out("\b \b")
+    elif ch == "\t":
+        repl_line += "    "
+        out("    ")
     else:
-        text_buffer += ch
-        print(ch, end="")
-    text_buffer = text_buffer[-400:]
-    if typed:
-        typed.text = wrap(text_buffer)
+        repl_line += ch
+        out(ch)
+
 
 
 # ---------------------------------------------------------------------------
@@ -291,6 +353,9 @@ while True:
 
     known = address
     show_status("Connected: " + name)
+    repl_line = ""
+    repl_block.clear()
+    repl_prompt()
     pressed = set()
     while conn.connected:
         for pb in buffers:
