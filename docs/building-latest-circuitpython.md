@@ -13,8 +13,8 @@
 The default branch is adafruit/circuitpython `main` plus the fix from
 [PR #11859](https://github.com/adafruit/circuitpython/pull/11859). That fix
 makes `_bleio` `connect()` raise instead of hanging forever when the link
-fails before NimBLE reports it, which matters for
-`examples/ble_keyboard_host.py`. Once the PR is merged, the build can go back
+fails before NimBLE reports it, which the BLE keyboard host in
+`examples/keyboard host/` depends on. Once the PR is merged, the build can go back
 to an upstream ref.
 
 History: 10.3.2 → 11.0.0-alpha.2 → `main` (after 11.0.0-alpha.3) + PR #11859. None of these steps

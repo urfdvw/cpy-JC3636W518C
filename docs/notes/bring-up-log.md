@@ -83,8 +83,37 @@ kept in the repo). Recreate them if needed:
   `<newest upstream tag>-g<commit>`, because a shallow fork clone has no tags
   for `git describe`.
 
+## BLE keyboard host
+
+* Goal: use a Clicks "Power Keyboard" (BLE 5.4) as the board's keyboard.
+  Code and full debugging diary: `examples/keyboard host/` (`code.py`, `MEMORY.md`).
+* 10.3.2: `connect()` returned a dead connection after its timeout. 10.3.2
+  only finished `connect()` once the board's own ATT MTU exchange was
+  answered. This was fixed upstream before 11.0.0-alpha.2.
+* 11.0.0-alpha.2: `connect()` to the keyboard never returned, even with
+  `timeout=1`. A source check found the cause: NimBLE reported the failed link
+  with `BLE_GAP_EVENT_DISCONNECT`, which `_connect_event` ignored.
+* A debug build with the fix and `CIRCUITPY_VERBOSE_BLE` showed
+  `Disconnected while connecting: reason 0x0213`. The keyboard had ended the
+  link itself (HCI 0x13). `connect()` now raised instead of hanging. The fix
+  went upstream as
+  [adafruit/circuitpython#11859](https://github.com/adafruit/circuitpython/pull/11859).
+* Result: with firmware `11.0.0-alpha.3-g6465d03` (upstream `main` + #11859, verbose BLE off), the
+  keyboard connects, pairs and types, and `examples/keyboard host/code.py` works as a
+  complete example: on-screen terminal plus a Python prompt typed on the
+  keyboard. Why the earlier attempts ended in 0x0213 was not pinned down
+  separately.
+* Practical findings, also in [usage.md](../usage.md#ble):
+  - throttle scan restarts (scan iterator ends after ~0.25 s, and a tight
+    restart loop gives "system firmware error: 21");
+  - match the keyboard by name (it may only appear in the scan response);
+  - keep the phone's Bluetooth off while connecting.
+
 ## Not yet tested on hardware
 
-The 11.0.0-alpha.2 builds, touch, TF card, audio out, both microphones, Wi-Fi, BLE (including
-`examples/ble_keyboard_host.py`), backlight dimming, the `identify_board.py`
-heuristic, the original-revision build, and the other panel tables.
+Tested so far: display, USB drive and REPL (10.3.2 and `11.0.0-alpha.3-g6465d03`), and BLE
+central with a keyboard (`11.0.0-alpha.3-g6465d03`, `examples/keyboard host/`).
+
+Not yet tested: touch, TF card, audio out, both microphones, Wi-Fi, the BLE
+peripheral role, backlight dimming, the `identify_board.py` heuristic, the
+original-revision build, and the other panel tables.

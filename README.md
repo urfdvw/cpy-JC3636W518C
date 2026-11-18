@@ -7,7 +7,9 @@ DAC and a microphone.
 
 With this firmware the display starts at boot as `board.DISPLAY`, every
 on-board part has a `board` pin name, and the board appears as a `CIRCUITPY`
-USB drive. Documentation is in [`docs/`](docs/README.md).
+USB drive. Tested on hardware so far: the display, the USB drive and REPL,
+and BLE: [`examples/keyboard host/`](examples/keyboard%20host/) is a working Bluetooth LE keyboard host.
+Documentation is in [`docs/`](docs/README.md).
 
 ## Download
 

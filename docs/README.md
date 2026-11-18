@@ -23,4 +23,5 @@ Downloading and flashing are covered in the [top-level README](../README.md).
 | Folder | Contents |
 |--------|----------|
 | [vendor/](vendor/README.md) | Guition's download package: manual, schematics, datasheets, mechanical drawing, display init code, Arduino demo |
+| [`examples/keyboard host/`](../examples/keyboard%20host/) | Working BLE keyboard host example (complete `CIRCUITPY` contents) and its debugging notes, `MEMORY.md` |
 | [photos/](photos/) | Photos of a batch-2628 board: PCB top side and the panel's back label |

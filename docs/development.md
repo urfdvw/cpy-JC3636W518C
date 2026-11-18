@@ -55,6 +55,7 @@ boards/guition_jc3636w518c_v2/
     sdkconfig
 lib/                         CircuitPython libraries for the board
 examples/                    example code.py files
+examples/keyboard host/      tested BLE keyboard host: a complete CIRCUITPY drive + MEMORY.md debugging notes
 tools/st77916_tables.py      collects/compares/converts the panel init tables
 tools/panels_*.py.txt        header/footer used to generate lib/jc3636w518_panels.py
 docs/                        guides, notes, vendor material, photos

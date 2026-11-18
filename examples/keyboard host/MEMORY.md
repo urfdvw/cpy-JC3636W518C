@@ -1,5 +1,14 @@
 # BLE keyboard host — debugging notes
 
+> **Status (2026-11-18): working.** On firmware `11.0.0-alpha.3-g6465d03`
+> (CircuitPython `main` + [adafruit/circuitpython#11859](https://github.com/adafruit/circuitpython/pull/11859),
+> verbose BLE off), the board finds the Clicks Power Keyboard, connects,
+> pairs and types. `examples/keyboard host/code.py` is the tested example; see
+> `docs/usage.md` (BLE section) for how to use it. The notes below are the
+> debugging history, oldest first. The "open question" at the end about the
+> 0x0213 disconnects was not investigated further once the fixed firmware
+> worked.
+
 Board: Guition JC3636W518C V2 (ESP32-S3). Tested on CircuitPython 10.3.2, then 11.0.0-alpha.2.
 Target keyboard: Clicks "Power Keyboard" (advertises as `Power Keyboard-B49E-1`,
 address d8:c3:e4:62:b4:9e, random static)

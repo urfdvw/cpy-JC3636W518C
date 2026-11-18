@@ -2,26 +2,32 @@
 """
 BLE keyboard host (HID over GATT central) for the Guition JC3636W518C.
 
-The board scans for a Bluetooth LE keyboard, pairs with it, subscribes to its
-key reports and shows what you type on the round screen (and on the serial
-console).
+Tested on a batch-2628 board (V2 build) with firmware 11.0.0-alpha.3-g6465d03
+(CircuitPython main + adafruit/circuitpython#11859) and a Clicks "Power Keyboard".
+
+What it does
+  * Scans for a BLE keyboard whose name starts with TARGET_NAME_PREFIX,
+    connects, pairs and bonds, then reconnects to it after a disconnect.
+  * Subscribes to its key reports (boot protocol when supported).
+  * Shows an on-screen terminal and runs a Python prompt (>>> / ...) that you
+    type on the keyboard. Output also goes to the serial console.
 
 Usage
-  1. Copy this file to CIRCUITPY/code.py. For on-screen text also install
-     adafruit_display_text (``circup install adafruit_display_text``);
-     without it the text only goes to the serial console.
-  2. Put the keyboard into pairing mode.
-  3. The board pairs and bonds with the first keyboard it finds. After
-     that it reconnects to the same keyboard when it wakes up.
+  1. Copy this folder's contents (code.py, lib/, ...) to the root of CIRCUITPY.
+  2. Set TARGET_NAME_PREFIX below to the start of your keyboard's name.
+  3. Put the keyboard into pairing mode. Turn off Bluetooth on phones paired
+     with it while the board connects.
 
 Notes
-  * BLE keyboards only. ESP32-S3 has no Classic Bluetooth, so older
-    Bluetooth 2.x/3.x keyboards cannot connect.
+  * BLE keyboards only. ESP32-S3 has no Classic Bluetooth.
   * CircuitPython pairs as "Just Works" (no passkey). Keyboards that insist
     on typing a passkey will not pair.
+  * Needs firmware with the _bleio connect() fix (#11859): on stock
+    11.0.0-alpha.2, connect() to this keyboard never returned.
   * adafruit_ble's HIDService has no central (host) side, so this uses the
     low-level _bleio module directly.
   * Run ``_bleio.adapter.erase_bonding()`` in the REPL to forget bonded keyboards.
+  * Debugging history: MEMORY.md in this folder.
 """
 
 import time
