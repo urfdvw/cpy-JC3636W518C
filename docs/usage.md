@@ -6,7 +6,7 @@
 |---------|-----|--------------------|
 | Display (`board.DISPLAY`, REPL on screen) | built-in, `qspibus` + `busdisplay` | yes (V2 build on 10.3.2, batch 2628) |
 | USB `CIRCUITPY` drive and serial REPL | built-in | yes (V2 build on 10.3.2, batch 2628) |
-| Same on CircuitPython 11.0.0-alpha.2 | — | not yet |
+| Same on CircuitPython 11 (`main` + PR #11859) | — | not yet |
 | Backlight dimming | `board.DISPLAY.brightness` | not yet |
 | Touch | `lib/cst816.py` | not yet |
 | TF card | `sdioio` | not yet |

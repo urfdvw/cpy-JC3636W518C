@@ -11,7 +11,9 @@ permissions:
   contents: write
 
 env:
-  CP_VERSION: "11.0.0-alpha.2"
+  # CircuitPython source: urfdvw's fork, branch of adafruit/circuitpython PR #11859.
+  CP_REPO: "https://github.com/urfdvw/circuitpython"
+  CP_REF: "espressif-bleio-connect-disconnect"
 
 jobs:
   build:
@@ -34,7 +36,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.espressif
-          key: espressif-${{ env.CP_VERSION }}
+          key: espressif-${{ env.CP_REF }}
 
       - name: Build
         run: ./build.sh ${{ matrix.board }}

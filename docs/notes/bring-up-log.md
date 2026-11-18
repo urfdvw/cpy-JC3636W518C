@@ -69,6 +69,20 @@ kept in the repo). Recreate them if needed:
   failed. `build.sh` now syncs them, and starts fresh build directories after
   a version change.
 
+## Building from the fork (PR #11859)
+
+* The build source moved to `urfdvw/circuitpython`, branch
+  `espressif-bleio-connect-disconnect`: upstream `main` (`b30ebbc`, after
+  11.0.0-alpha.3) plus one commit, `6465d03`. In that commit, `_bleio`
+  `connect()` on espressif ends with an error when NimBLE drops a failed link
+  (HCI 0x3E) after its connection re-attempts. Before, it waited forever.
+* The board-relevant headers are identical to 11.0.0-alpha.2.
+* CircuitPython's `py/version.py` uses the environment variable `CP_VERSION`
+  as the version string. `build.sh` used that name for the git ref, so the
+  ref now lives in `CP_REPO`/`CP_REF`. `build.sh` sets `CP_VERSION` to
+  `<newest upstream tag>-g<commit>`, because a shallow fork clone has no tags
+  for `git describe`.
+
 ## Not yet tested on hardware
 
 The 11.0.0-alpha.2 builds, touch, TF card, audio out, both microphones, Wi-Fi, BLE (including

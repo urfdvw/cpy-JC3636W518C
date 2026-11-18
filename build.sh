@@ -1,20 +1,28 @@
 #!/usr/bin/env bash
 # Build CircuitPython firmware for the Guition JC3636W518C.
 #
-#   ./build.sh                          # both variants, default CircuitPython version
+#   ./build.sh                          # both variants, default source (below)
 #   ./build.sh guition_jc3636w518c_v2   # one variant
-#   CP_VERSION=10.4.0 ./build.sh        # another release tag
-#   CP_VERSION=main ./build.sh          # latest development code
+#   CP_REF=main ./build.sh              # another branch of CP_REPO
+#   CP_REPO=https://github.com/adafruit/circuitpython CP_REF=11.0.0-alpha.2 ./build.sh
 #
 # Environment:
-#   CP_VERSION  CircuitPython tag or branch to build against (default below)
+#   CP_REPO     CircuitPython git repository to build from (default: urfdvw's fork)
+#   CP_REF      branch, tag or commit in CP_REPO (default below)
+#   CP_VERSION  version string the firmware reports. CircuitPython's build reads
+#               this variable itself. Default: CP_REF for a release tag, else
+#               "<newest upstream tag>-g<commit>" (like `git describe`).
 #   CP_DIR      where to keep the CircuitPython checkout (default ./build/circuitpython)
 #   JOBS        parallel make jobs (default: nproc)
 #
 # See docs/building-latest-circuitpython.md.
 set -euo pipefail
 
-CP_VERSION="${CP_VERSION:-11.0.0-alpha.2}"
+# Default source: urfdvw/circuitpython, branch of adafruit/circuitpython PR #11859
+# (espressif _bleio: connect() no longer hangs when the link fails early).
+CP_REPO="${CP_REPO:-https://github.com/urfdvw/circuitpython}"
+CP_REF="${CP_REF:-espressif-bleio-connect-disconnect}"
+UPSTREAM=https://github.com/adafruit/circuitpython
 HERE="$(cd "$(dirname "$0")" && pwd)"
 CP_DIR="${CP_DIR:-$HERE/build/circuitpython}"
 JOBS="${JOBS:-$(nproc)}"
@@ -23,20 +31,29 @@ if [ ${#BOARDS[@]} -eq 0 ]; then
     BOARDS=(guition_jc3636w518c guition_jc3636w518c_v2)
 fi
 
-# 1. CircuitPython source at CP_VERSION (shallow; re-used between runs).
+# 1. CircuitPython source at CP_REF (shallow; re-used between runs).
+#    Submodule URLs in .gitmodules are absolute, so a fork works the same way.
 if [ ! -d "$CP_DIR/.git" ]; then
-    git clone --depth 1 --branch "$CP_VERSION" https://github.com/adafruit/circuitpython "$CP_DIR"
-else
-    git -C "$CP_DIR" fetch --depth 1 origin "$CP_VERSION"
-    git -C "$CP_DIR" checkout --force FETCH_HEAD
+    git init -q "$CP_DIR"
 fi
+git -C "$CP_DIR" fetch --depth 1 "$CP_REPO" "$CP_REF"
+git -C "$CP_DIR" checkout -q --force FETCH_HEAD
 cd "$CP_DIR"
-if [[ "$CP_VERSION" =~ ^[0-9] ]]; then
-    CP_LABEL="$CP_VERSION"                                       # release tag
-else
-    CP_LABEL="$CP_VERSION-$(git rev-parse --short HEAD)"         # branch: add commit
+SHA="$(git rev-parse --short HEAD)"
+
+# Version string. A shallow clone has no tags for `git describe`, so set it here.
+if [ -z "${CP_VERSION:-}" ]; then
+    if [[ "$CP_REF" =~ ^[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+        CP_VERSION="$CP_REF"
+    else
+        base="$(git ls-remote --tags --refs "$UPSTREAM" | sed 's|.*refs/tags/||' \
+                | grep -E '^[0-9]+\.[0-9]+\.[0-9]+' | sort -V | tail -1)"
+        CP_VERSION="${base:-0.0.0}-g$SHA"
+    fi
 fi
-echo "Building against CircuitPython $CP_LABEL"
+export CP_VERSION
+CP_LABEL="$CP_VERSION"
+echo "Building $CP_REPO @ $CP_REF ($SHA) as CircuitPython $CP_VERSION"
 
 # 2. Submodules needed by the espressif port (includes the matching ESP-IDF).
 python3 tools/ci_fetch_deps.py espressif

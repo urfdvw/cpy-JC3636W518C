@@ -12,7 +12,9 @@ USB drive. Documentation is in [`docs/`](docs/README.md).
 ## Download
 
 Firmware files are named `<board>-<CircuitPython version>.bin`. The current
-build is based on CircuitPython **11.0.0-alpha.2**, a pre-release.
+build is based on CircuitPython `main` after **11.0.0-alpha.3**, plus the BLE
+fix from [adafruit/circuitpython#11859](https://github.com/adafruit/circuitpython/pull/11859).
+This is development code.
 
 * **Releases:** the repository's Releases page, for tagged versions.
 * **Latest build:** open the Actions tab, pick the most recent green
@@ -63,7 +65,7 @@ pip install esptool
 # optional: back up the factory firmware (16 MB)
 esptool.py --chip esp32s3 --port PORT read_flash 0 0x1000000 factory-backup.bin
 esptool.py --chip esp32s3 --port PORT erase_flash
-esptool.py --chip esp32s3 --port PORT write_flash -z 0x0 guition_jc3636w518c_v2-11.0.0-alpha.2.bin
+esptool.py --chip esp32s3 --port PORT write_flash -z 0x0 guition_jc3636w518c_v2-11.0.0-alpha.3-g6465d03.bin
 ```
 
 `PORT` is e.g. `COM3` on Windows, `/dev/cu.usbmodem…` on macOS, or
