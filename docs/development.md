@@ -8,13 +8,18 @@ ESP-IDF toolchain (several GB).
 ```sh
 ./build.sh                       # both variants -> dist/
 ./build.sh guition_jc3636w518c   # one variant
-CP_VERSION=main ./build.sh       # build against another CircuitPython ref
+CP_REF=main ./build.sh           # another branch of the CircuitPython fork
+CP_REPO=https://github.com/adafruit/circuitpython CP_REF=11.0.0-alpha.2 ./build.sh
 ```
 
 `build.sh`:
 
-1. clones CircuitPython into `build/circuitpython` (default tag `10.3.2`, a
-   stable release that includes `qspibus`);
+1. fetches CircuitPython into `build/circuitpython`. The default is
+   `urfdvw/circuitpython`, branch `espressif-bleio-connect-disconnect` (upstream
+   `main` + PR #11859); see
+   [building-latest-circuitpython.md](building-latest-circuitpython.md#where-the-source-comes-from).
+   `qspibus` needs 10.2.0 or newer, and `audioi2sin` (I2S microphone) needs 11.
+   It also sets `CP_VERSION`, the version string the firmware reports;
 2. fetches the espressif port's submodules;
 3. copies `boards/*` into `ports/espressif/boards/`;
 4. runs ESP-IDF's `install.sh`, and installs CircuitPython's Python build
@@ -50,6 +55,7 @@ boards/guition_jc3636w518c_v2/
     sdkconfig
 lib/                         CircuitPython libraries for the board
 examples/                    example code.py files
+examples/keyboard host/      tested BLE keyboard host: a complete CIRCUITPY drive + MEMORY.md debugging notes
 tools/st77916_tables.py      collects/compares/converts the panel init tables
 tools/panels_*.py.txt        header/footer used to generate lib/jc3636w518_panels.py
 docs/                        guides, notes, vendor material, photos

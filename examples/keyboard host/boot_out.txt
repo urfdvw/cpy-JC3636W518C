@@ -1,0 +1,5 @@
+Adafruit CircuitPython 11.0.0-alpha.3-g6465d03 on 2026-11-18; Guition JC3636W518C V2 with ESP32S3
+Board ID:guition_jc3636w518c_v2
+architecture:xtensawin
+UID:CCBA9708C9B8
+MAC:CC:BA:97:08:C9:B8
